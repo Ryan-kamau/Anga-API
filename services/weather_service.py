@@ -78,7 +78,6 @@ class WeatherService:
         raw_data = self.fetch_weather(lat, lon)
         if not raw_data:
             raise ValueError("Failed to fetch weather data")
-        print("RAW WEATHER RESPONSE:", raw_data)
         return self.normalize_weather(raw_data)
 
 
