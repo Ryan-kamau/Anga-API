@@ -8,7 +8,7 @@ class WeatherService:
     def __init__(self):
         self.api_key = os.getenv("WEATHER_API_KEY")
         self.geo_url = "http://api.openweathermap.org/geo/1.0/direct"
-        self.weather_url = "https://api.openweathermap.org/data/2.5/onecall"
+        self.weather_url = "https://api.openweathermap.org/data/2.5/forecast"
         
         if not self.api_key:
             raise ValueError("Missing WEATHER_API_KEY in .env")
@@ -34,7 +34,6 @@ class WeatherService:
         params = {
             "lat": lat,
             "lon": lon,
-            "exclude": "minutely,daily,alerts",
             "units": "metric",
             "appid": self.api_key
         }
@@ -47,32 +46,27 @@ class WeatherService:
         data = response.json()
 
         # 🔥 critical check
-        if "current" not in data:
+        if "list" not in data:
             raise ValueError(f"Unexpected API response: {data}")
 
         return data
 
       # 🔹 Step 3: Normalize
     def normalize_weather(self, data):
-        hourly = data.get("hourly", [])
-        current = data.get("current")
-
-        if not current:
-            raise ValueError("Missing current weather data")
-
-        sunrise = current.get("sunrise", 0)
+        hourly = data.get("list", [])         # ← was "hourly"
+        sunrise = data.get("city", {}).get("sunrise", 0)
 
         return [
             {
                 "time": hour.get("dt"),
-                "temp": hour.get("temp"),
-                "humidity": hour.get("humidity"),
-                "rain": hour.get("rain", {}).get("1h", 0),
-                "wind_speed": hour.get("wind_speed"),
-                "cloud_cover": hour.get("clouds"),
+                "temp": hour.get("main", {}).get("temp"),
+                "humidity": hour.get("main", {}).get("humidity"),
+                "rain": hour.get("rain", {}).get("3h", 0),  # ← 3h not 1h
+                "wind_speed": hour.get("wind", {}).get("speed"),
+                "cloud_cover": hour.get("clouds", {}).get("all"),  # ← nested
                 "is_day": hour.get("dt", 0) > sunrise
             }
-            for hour in hourly[:24]
+            for hour in hourly[:8]  # ← forecast gives 3hr slots, 8 = ~24hrs
         ]
 
     # 🔹 Public method (entry point)
