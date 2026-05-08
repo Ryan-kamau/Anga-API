@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException
 from services.weather_service import WeatherService
 from fastapi import HTTPException
+from schema.weather import WeatherResponse
 
 router = APIRouter()
 weather_service = WeatherService()  # single instance
 
-@router.get("/weather/details")
+@router.get("/weather/details", response_model=WeatherResponse)
 def get_weather_details(city: str):
     try:
         return weather_service.get_weather(city)
