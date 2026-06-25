@@ -1,6 +1,8 @@
 import requests
 from dotenv import load_dotenv
 import os
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 load_dotenv()
 
@@ -56,9 +58,13 @@ class WeatherService:
         hourly = data.get("list", [])         # ← was "hourly"
         sunrise = data.get("city", {}).get("sunrise", 0)
 
-        return [
+        nairobi_tz =ZoneInfo("Africa/Nairobi")
+
+        forecast =  [
             {
-                "time": hour.get("dt"),
+                "time": datetime.fromtimestamp(hour.get("dt"), 
+                                               tz=nairobi_tz).strftime(
+                                                   "%Y-%m-%d Time-%H:%M:%S"),
                 "temp": hour.get("main", {}).get("temp"),
                 "humidity": hour.get("main", {}).get("humidity"),
                 "rain": hour.get("rain", {}).get("3h", 0),  # ← 3h not 1h
@@ -68,6 +74,11 @@ class WeatherService:
             }
             for hour in hourly[:8]  # ← forecast gives 3hr slots, 8 = ~24hrs
         ]
+        return {
+            "city": data.get("city", {}).get("name", "Unknown"),
+            "count": len(forecast),
+            "forecast": forecast
+        }
 
     # 🔹 Public method (entry point)
     def get_weather(self, city: str):

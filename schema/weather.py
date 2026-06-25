@@ -1,7 +1,6 @@
 # schemas/weather.py
 from zoneinfo import ZoneInfo
 from pydantic import BaseModel, Field, field_validator
-from schema.weather import WeatherResponse
 from datetime import datetime, timezone
 
 

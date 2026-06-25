@@ -39,6 +39,7 @@ def best_time(
     # ── 2. Fetch weather ─────────────────────────────────────────────────────
     try:
         weather_data = weather_service.get_weather(city)
+        weather_data = weather_data.get("forecast", [])
 
     except ValueError as e:
         # city not found, bad coordinates, upstream API error
